@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper 
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mangocity.mybatis.sqlmapper.UserMapper">
+	<resultMap type="map" id="userMapper">
+		<id column="USER_ID" property="userId"/>
+		<result column="USER_NAME" property="userName"/>
+		<result column="DESC" property="desc"/>
+	</resultMap>
+
+	<select id="queryUserById" parameterType="map" resultMap="userMapper">
+		select * from t_user u where u.user_id=#{userId}
+	</select>
+	
+	<insert id="addUser" parameterType="map">
+		insert into t_user(user_id,user_name,desc) values
+		(
+			null,
+			#{userName},
+			#{desc}
+		)
+	</insert>
+	
+</mapper> 
