@@ -42,8 +42,10 @@ public class SqlUtil {
 
 	public void init() {
 		try {
-			Reader reader = Resources.getResourceAsReader(resource);
+			//根据资源文件获得字符流对象
 			Reader xmlReader = Resources.getResourceAsReader(resource);
+			
+			//根据字符流对象和对应的environment id生成SqlSessionFactory
 			sqlliteSessionFactory = new SqlSessionFactoryBuilder().build(
 					xmlReader, "sqllite");
 		} catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.mangocity.mybatis.sqlmapper;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -31,6 +32,12 @@ public class UserMapperTest {
 		paramMap.put("desc", "beautiful");
 		int row = SqlUtil.getInstance().insertOne("addUser", paramMap);
 		System.out.println("row: " + row);
+	}
+	
+	@Test
+	public void testQueryAll(){
+		List<Map<String,Object>> resultList = SqlUtil.getInstance().selectList("queryAllUsers", null);
+		System.out.println("resultList: " + resultList);
 	}
 
 }
