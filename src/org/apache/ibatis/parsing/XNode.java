@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * sqlConfig.xml中每一个属性都被抽象成一个XNode
  * @author Clinton Begin
  */
 public class XNode {

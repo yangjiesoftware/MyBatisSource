@@ -43,7 +43,8 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.type.JdbcType;
 
 /**
- * @author Clinton Begin
+ * 解析sqlconfig.xml配置文件
+ * 会将XML配置文件的信息转换为Document对象
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
@@ -60,6 +61,9 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public XMLConfigBuilder(Reader reader, String environment, Properties props) {
+	//this.XMLConfigBuilder(XPathParser parser, String environment, Properties props)
+	//XPathParser:生成Document对象
+	//XMLMapperEntityResolver:SAX匹配DTD的实现类
     this(new XPathParser(reader, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
@@ -75,8 +79,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     this(new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
+  //XPathParser xml解析器
   private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
-    super(new Configuration());
+    super(new Configuration());//构建一个Configuration对象
     ErrorContext.instance().resource("SQL Mapper Configuration");
     this.configuration.setVariables(props);
     this.parsed = false;
@@ -85,26 +90,28 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
-    if (parsed) {
+    if (parsed) {//初始化的时候,设置的是false,只能被解析一次
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    //解析sqlconfig.xml 获得Configuration节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
   private void parseConfiguration(XNode root) {
     try {
-      propertiesElement(root.evalNode("properties")); //issue #117 read properties first
-      typeAliasesElement(root.evalNode("typeAliases"));
-      pluginElement(root.evalNode("plugins"));
-      objectFactoryElement(root.evalNode("objectFactory"));
+    	//按照sqlConfig.xml配置文件的顺序一次进行解析的
+      propertiesElement(root.evalNode("properties")); //属性文件
+      typeAliasesElement(root.evalNode("typeAliases"));//别名
+      pluginElement(root.evalNode("plugins"));//插件
+      objectFactoryElement(root.evalNode("objectFactory"));//对象工厂
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
-      settingsElement(root.evalNode("settings"));
+      settingsElement(root.evalNode("settings"));//全局设置
       environmentsElement(root.evalNode("environments")); // read it after objectFactory and objectWrapperFactory issue #631
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-      typeHandlerElement(root.evalNode("typeHandlers"));
-      mapperElement(root.evalNode("mappers"));
+      typeHandlerElement(root.evalNode("typeHandlers"));//类型处理器
+      mapperElement(root.evalNode("mappers"));//映射文件
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
     }
@@ -134,25 +141,42 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 拦截器
+   *<plugins>
+		<plugin interceptor="">
+			<property name="" value=""/>
+		</plugin>
+	</plugins>
+   * @param parent
+   * @throws Exception
+   */
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         String interceptor = child.getStringAttribute("interceptor");
-        Properties properties = child.getChildrenAsProperties();
-        Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+        Properties properties = child.getChildrenAsProperties();//plugin的子节点key-value
+        Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();//定义的拦截器必须实现Interceptor接口
         interceptorInstance.setProperties(properties);
-        configuration.addInterceptor(interceptorInstance);
+        configuration.addInterceptor(interceptorInstance);//将拦截器添加到Configuration成员变量当中
       }
     }
   }
 
+  /**
+   *<objectFactory type="">
+		<property name="" value=""/>
+	</objectFactory>
+   * @param context
+   * @throws Exception
+   */
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
       String type = context.getStringAttribute("type");
       Properties properties = context.getChildrenAsProperties();
       ObjectFactory factory = (ObjectFactory) resolveClass(type).newInstance();
       factory.setProperties(properties);
-      configuration.setObjectFactory(factory);
+      configuration.setObjectFactory(factory);//将对象工厂添加到Configuration成员变量当中
     }
   }
 
@@ -164,16 +188,21 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <properties resource="config/db.properties" />
+   * @param context
+   * @throws Exception
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
       Properties defaults = context.getChildrenAsProperties();
-      String resource = context.getStringAttribute("resource");
+      String resource = context.getStringAttribute("resource");//<properties resource="config/db.properties" />
       String url = context.getStringAttribute("url");
-      if (resource != null && url != null) {
+      if (resource != null && url != null) {//url和resource不能同时指定
         throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
       if (resource != null) {
-        defaults.putAll(Resources.getResourceAsProperties(resource));
+        defaults.putAll(Resources.getResourceAsProperties(resource));//将properties中的key-value全部读取出来并设置到局部变量存储
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
@@ -182,10 +211,20 @@ public class XMLConfigBuilder extends BaseBuilder {
         defaults.putAll(vars);
       }
       parser.setVariables(defaults);
-      configuration.setVariables(defaults);
+      configuration.setVariables(defaults);//设置到Configuration成员变量当中
     }
   }
 
+  /**
+   *<settings>
+		<!-- changes from the defaults for testing -->
+		<setting name="cacheEnabled" value="false" />
+		<setting name="useGeneratedKeys" value="true" />
+		<setting name="defaultExecutorType" value="REUSE" />
+	</settings>
+   * @param context
+   * @throws Exception
+   */
   private void settingsElement(XNode context) throws Exception {
     if (context != null) {
       Properties props = context.getChildrenAsProperties();
@@ -196,6 +235,9 @@ public class XMLConfigBuilder extends BaseBuilder {
           throw new BuilderException("The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
         }
       }
+      /**
+       * properties中所有的Key
+       */
       configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
       configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
       configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty("proxyFactory")));

@@ -191,6 +191,12 @@ public class ClassLoaderWrapper {
 
   }
 
+  /**
+   * 系统类加载器,当前线程加载器,当前类的加载器
+   * 只要有其中一个能加载资源文件,就直接返回
+   * @param classLoader
+   * @return
+   */
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
         classLoader, 
