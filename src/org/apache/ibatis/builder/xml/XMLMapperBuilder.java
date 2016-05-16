@@ -79,6 +79,13 @@ public class XMLMapperBuilder extends BaseBuilder {
         configuration, resource, sqlFragments);
   }
 
+  /**
+   * 
+   * @param parser
+   * @param configuration
+   * @param resource xxMapper.xml路径
+   * @param sqlFragments
+   */
   private XMLMapperBuilder(XPathParser parser, Configuration configuration, String resource, Map<String, XNode> sqlFragments) {
     super(configuration);
     this.builderAssistant = new MapperBuilderAssistant(configuration, resource);
@@ -87,7 +94,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * 开始解析xxMapper.xml文件
+   */
   public void parse() {
+	System.out.println("XmlMapperBuilder parse()...解析Mapper.xml");
     if (!configuration.isResourceLoaded(resource)) {
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);

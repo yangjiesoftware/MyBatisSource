@@ -210,13 +210,13 @@ public class ResolverUtil<T> {
    *        classes, e.g. {@code net.sourceforge.stripes}
    */
   public ResolverUtil<T> find(Test test, String packageName) {
-    String path = getPackagePath(packageName);
+    String path = getPackagePath(packageName);//com/mangocity/mybatis/sqlmapper
 
     try {
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
         if (child.endsWith(".class"))
-          addIfMatching(test, child);
+          addIfMatching(test, child);//添加指定包名下的class文件
       }
     } catch (IOException ioe) {
       log.error("Could not read package: " + packageName, ioe);
@@ -251,7 +251,7 @@ public class ResolverUtil<T> {
 
       Class<?> type = loader.loadClass(externalName);
       if (test.matches(type)) {
-        matches.add((Class<T>) type);
+        matches.add((Class<T>) type);//[class com.mangocity.mybatis.sqlmapper.UserMapperTest, interface com.mangocity.mybatis.sqlmapper.UserMapper]
       }
     } catch (Throwable t) {
       log.warn("Could not examine class '" + fqn + "'" + " due to a " +

@@ -32,6 +32,7 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
 /**
+ * 默认的SqlSessionFactory 创建sqlSession的工厂
  * @author Clinton Begin
  */
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
@@ -42,10 +43,14 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     this.configuration = configuration;
   }
 
+  /**
+   * 开一个sqlSession(根据配置文件中的DataSource),默认执行器,无隔离级别,不自动提交
+   */
   public SqlSession openSession() {
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
   }
 
+  //openSession 重载方法
   public SqlSession openSession(boolean autoCommit) {
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, autoCommit);
   }
@@ -66,6 +71,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return openSessionFromDataSource(execType, null, autoCommit);
   }
 
+  //根据Connection来创建SqlSession
   public SqlSession openSession(Connection connection) {
     return openSessionFromConnection(configuration.getDefaultExecutorType(), connection);
   }
@@ -78,13 +84,17 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  //***************core入口***************
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
-      final Environment environment = configuration.getEnvironment();
-      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
-      final Executor executor = configuration.newExecutor(tx, execType);
+      final Environment environment = configuration.getEnvironment();//获得Configuration中的Environment
+      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);//(根据之前transactionManager中type指定的别名,创建出了对应的事务工厂)
+      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);//创建事务 如果type="JDBC",则创建出一个JdbcTransaction
+      /**
+       * 根据transaction创建Executor
+       */
+      final Executor executor = configuration.newExecutor(tx, execType);//**********事务被组合到了执行器当中**********/
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()

@@ -31,11 +31,7 @@ import org.apache.ibatis.transaction.TransactionException;
  * It relies on the connection retrieved from the dataSource to manage the scope of the transaction.
  * Delays connection retrieval until getConnection() is called.
  * Ignores commit or rollback requests when autocommit is on.
- *
  * @see JdbcTransactionFactory
- */
-/**
- * @author Clinton Begin
  */
 public class JdbcTransaction implements Transaction {
 
@@ -91,9 +87,9 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
-  protected void setDesiredAutoCommit(boolean desiredAutoCommit) {
+  protected void setDesiredAutoCommit(boolean desiredAutoCommit) {//Desired:期望
     try {
-      if (connection.getAutoCommit() != desiredAutoCommit) {
+      if (connection.getAutoCommit() != desiredAutoCommit) {//如果设置的自动提交值和原来Connection的自动提交值不相同,才重新设置
         if (log.isDebugEnabled()) {
           log.debug("Setting autocommit to " + desiredAutoCommit + " on JDBC Connection [" + connection + "]");
         }
@@ -102,20 +98,17 @@ public class JdbcTransaction implements Transaction {
     } catch (SQLException e) {
       // Only a very poorly implemented driver would fail here,
       // and there's not much we can do about that.
+      //自动提交和驱动有关
       throw new TransactionException("Error configuring AutoCommit.  "
           + "Your driver may not support getAutoCommit() or setAutoCommit(). "
           + "Requested setting: " + desiredAutoCommit + ".  Cause: " + e, e);
     }
   }
 
+  //将自动提交置为true
   protected void resetAutoCommit() {
     try {
-      if (!connection.getAutoCommit()) {
-        // MyBatis does not call commit/rollback on a connection if just selects were performed.
-        // Some databases start transactions with select statements
-        // and they mandate a commit/rollback before closing the connection.
-        // A workaround is setting the autocommit to true before closing the connection.
-        // Sybase throws an exception here.
+      if (!connection.getAutoCommit()) {//如果autocommit为false
         if (log.isDebugEnabled()) {
           log.debug("Resetting autocommit to true on JDBC Connection [" + connection + "]");
         }
@@ -135,6 +128,7 @@ public class JdbcTransaction implements Transaction {
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+    //设置自动提交
     setDesiredAutoCommit(autoCommmit);
   }
 

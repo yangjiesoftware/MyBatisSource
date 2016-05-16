@@ -94,29 +94,96 @@ public class Configuration {
 
   protected Environment environment;
 
+  /**
+   * 是否启用 行内嵌套语句  defaut:false] 
+   */
   protected boolean safeRowBoundsEnabled = false;
   protected boolean safeResultHandlerEnabled = true;
+  
+  /**
+   * [是否 启用  数据中 A_column 自动映射 到 Java类中驼峰命名的属性 default:fasle] 一定要相应的javabean才生效
+   */
   protected boolean mapUnderscoreToCamelCase = false;
+  
+  /**
+   * 当设置为开的时候,懒加载的对象可能被任何懒属性全部加载。否则,每个属性都按需加载
+   */
   protected boolean aggressiveLazyLoading = true;
+  
+  /**
+   * 允许和不允许单条语句返回多个数据集(取决于驱动)
+   */
   protected boolean multipleResultSetsEnabled = true;
+  
+  /**
+   * 允许JDBC生成主键
+   */
   protected boolean useGeneratedKeys = false;
+  
+  /**
+   * 使用列标签代替列名称(和驱动有关)
+   */
   protected boolean useColumnLabel = true;
+  
+  /**
+   * 默认开启缓存
+   */
   protected boolean cacheEnabled = true;
+  
+  /**
+   * 是否显示空数据列
+   */
   protected boolean callSettersOnNulls = false;
+  
   protected String logPrefix;
+  
   protected Class <? extends Log> logImpl;
+  
+  /**
+   * 设置本地缓存范围 session:就会有数据的共享  statement:语句范围 (这样就不会有数据的共享 ) defalut:session
+   */
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
+  
+  /**
+   * 设置但JDBC类型为空时,某些驱动程序 要指定值,default:OTHER
+   */
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
+  
+  /**
+   * 设置触发延迟加载的方法
+   */
   protected Set<String> lazyLoadTriggerMethods = new HashSet<String>(Arrays.asList(new String[] { "equals", "clone", "hashCode", "toString" }));
+  /**
+   * 数据库超时
+   */
   protected Integer defaultStatementTimeout;
+  /**
+   * 配置默认执行器 REUSE可重复使用ptmt BATCH执行器可以重复执行语句和批量更新
+   */
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+  
+  /**
+   * 如何来自动映射数据表字段和对象的属性(PARTIAL,NONE,FULL)
+   */
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
 
   protected Properties variables = new Properties();
+  
+  /**
+   * 实例化对象的工厂
+   */
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+  
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
+  
+  /**
+   * Mapper映射
+   */
   protected MapperRegistry mapperRegistry = new MapperRegistry(this);
 
+  /**
+   * 相关联的数据延迟加载
+   */
   protected boolean lazyLoadingEnabled = false;
   protected ProxyFactory proxyFactory;
 
@@ -161,9 +228,14 @@ public class Configuration {
   }
 
   public Configuration() {
+	  /**
+	   * 注册别名
+	   */
+	  //事务工厂
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);
 
+    //数据源
     typeAliasRegistry.registerAlias("JNDI", JndiDataSourceFactory.class);
     typeAliasRegistry.registerAlias("POOLED", PooledDataSourceFactory.class);
     typeAliasRegistry.registerAlias("UNPOOLED", UnpooledDataSourceFactory.class);
@@ -474,19 +546,25 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  /**
+   * 创建Executor(简单工厂)
+   * @param transaction
+   * @param executorType
+   * @return
+   */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
     if (ExecutorType.BATCH == executorType) {
-      executor = new BatchExecutor(this, transaction);
+      executor = new BatchExecutor(this, transaction);//BATCH
     } else if (ExecutorType.REUSE == executorType) {
-      executor = new ReuseExecutor(this, transaction);
+      executor = new ReuseExecutor(this, transaction);//REUSE
     } else {
-      executor = new SimpleExecutor(this, transaction);
+      executor = new SimpleExecutor(this, transaction);//SIMPLE
     }
-    if (cacheEnabled) {
-      executor = new CachingExecutor(executor);
+    if (cacheEnabled) {//如果开启了缓存,则默认的执行器不在ExecutorType中,而是CacheExecutor
+      executor = new CachingExecutor(executor);//CACHE
     }
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;

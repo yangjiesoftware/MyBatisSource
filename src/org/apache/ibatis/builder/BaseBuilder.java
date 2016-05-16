@@ -28,6 +28,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 基类Builder 其中最主要的是XmlConfigBuilder和XmlMapperBuilder,还有其他几个实现
  * @author Clinton Begin
  */
 public abstract class BaseBuilder {
@@ -95,6 +96,7 @@ public abstract class BaseBuilder {
     }
   }
 
+  //解析transactionManager中的type (JDBC,JNDI)
   protected Class<?> resolveClass(String alias) {
     if (alias == null) return null;
     try {
