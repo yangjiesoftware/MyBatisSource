@@ -44,6 +44,8 @@ import org.apache.ibatis.type.JdbcType;
 
 /**
  * 解析sqlconfig.xml配置文件
+ * 父类持有一个Configuration对象和一个TypeAliasRegistry和TypeHandlerRegistry
+ * 该类将配置文件的属性值设置到Configuration对象中
  * 会将XML配置文件的信息转换为Document对象
  */
 public class XMLConfigBuilder extends BaseBuilder {
@@ -96,6 +98,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     parsed = true;
     //解析sqlconfig.xml 获得Configuration节点
     parseConfiguration(parser.evalNode("/configuration"));
+    System.out.println("Configuration toString()..." + configuration);
     return configuration;
   }
 
@@ -255,13 +258,32 @@ public class XMLConfigBuilder extends BaseBuilder {
       configuration.setLazyLoadTriggerMethods(stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
       configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty("safeResultHandlerEnabled"), true));
       configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty("defaultScriptingLanguage")));
-      configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty("callSettersOnNulls"), false));
+      configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty("callSettersOnNulls"), false));//当SQL查出的列为空时,不显示该列
       configuration.setLogPrefix(props.getProperty("logPrefix"));
       configuration.setLogImpl(resolveClass(props.getProperty("logImpl")));
       configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
     }
   }
 
+  /**
+   * <environments default="sqllite">
+		<environment id="sqllite">
+			<transactionManager type="JDBC">
+			</transactionManager>
+			<dataSource type="POOLED"><!-- POOLED -->
+				<property name="driver" value="${driver.sqllite}" />
+				<property name="url" value="${url.sqllite}" />
+				<property name="username" value="${username.sqllite}" />
+				<property name="password" value="${password.sqllite}" />
+				<property name="poolMaximumActiveConnections" value="100" />
+				<property name="poolMaximumIdleConnections" value="0" />
+				<property name="poolTimeToWait" value="20000" />
+			</dataSource>
+		</environment>
+	</environments>
+   * @param context
+   * @throws Exception
+   */
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       if (environment == null) {
@@ -269,14 +291,15 @@ public class XMLConfigBuilder extends BaseBuilder {
       }
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
-        if (isSpecifiedEnvironment(id)) {
-          TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
-          DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
+        if (isSpecifiedEnvironment(id)) {//如果default指定的名字等于environment中的id名
+          TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));//得到事务管理器
+          DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));//得到数据源工厂
           DataSource dataSource = dsFactory.getDataSource();
+          //Builder模式 优越于javabean
           Environment.Builder environmentBuilder = new Environment.Builder(id)
               .transactionFactory(txFactory)
               .dataSource(dataSource);
-          configuration.setEnvironment(environmentBuilder.build());
+          configuration.setEnvironment(environmentBuilder.build());//设置到Configuration成员变量
         }
       }
     }
@@ -298,20 +321,42 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 事务管理器
+   * <<transactionManager type="JDBC">
+			</transactionManager>
+   * @param context
+   * @return
+   * @throws Exception
+   */
   private TransactionFactory transactionManagerElement(XNode context) throws Exception {
     if (context != null) {
-      String type = context.getStringAttribute("type");
+      String type = context.getStringAttribute("type");//JDBC
       Properties props = context.getChildrenAsProperties();
-      TransactionFactory factory = (TransactionFactory) resolveClass(type).newInstance();
+      TransactionFactory factory = (TransactionFactory) resolveClass(type).newInstance();//JDBC、JNDI在Configuration构造的时候进行注册
       factory.setProperties(props);
       return factory;
     }
     throw new BuilderException("Environment declaration requires a TransactionFactory.");
   }
 
+  /**
+   * <dataSource type="POOLED"><!-- POOLED -->
+		<property name="driver" value="${driver.sqllite}" />
+		<property name="url" value="${url.sqllite}" />
+		<property name="username" value="${username.sqllite}" />
+		<property name="password" value="${password.sqllite}" />
+		<property name="poolMaximumActiveConnections" value="100" />
+		<property name="poolMaximumIdleConnections" value="0" />
+		<property name="poolTimeToWait" value="20000" />
+	</dataSource>
+   * @param context
+   * @return
+   * @throws Exception
+   */
   private DataSourceFactory dataSourceElement(XNode context) throws Exception {
     if (context != null) {
-      String type = context.getStringAttribute("type");
+      String type = context.getStringAttribute("type");//POOLED-PooledDataSourceFactory、UNPOOLED-UnpooledDataSourceFactory
       Properties props = context.getChildrenAsProperties();
       DataSourceFactory factory = (DataSourceFactory) resolveClass(type).newInstance();
       factory.setProperties(props);
@@ -320,6 +365,14 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a DataSourceFactory.");
   }
 
+  /**
+   * <typeHandlers>
+   * 	<package name=""/>--><!-- 当配置package的时候，mybatis会去配置的package扫描TypeHandler -->
+    	<typeHandler handler="**Handler" javaType="java.util.Date" jdbcType="VARCHAR"/>
+	</typeHandlers>
+   * @param parent
+   * @throws Exception
+   */
   private void typeHandlerElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
@@ -347,6 +400,13 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <mappers>
+		<package name="com.mangocity.mybatis.sqlmapper" />
+	</mappers>
+   * @param parent
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
@@ -357,17 +417,18 @@ public class XMLConfigBuilder extends BaseBuilder {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
-          if (resource != null && url == null && mapperClass == null) {
+          if (resource != null && url == null && mapperClass == null) {//resource
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
+            //XMLMapperBuilder
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url != null && mapperClass == null) {
+          } else if (resource == null && url != null && mapperClass == null) {//url
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url == null && mapperClass != null) {
+          } else if (resource == null && url == null && mapperClass != null) {//mapperClass
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {

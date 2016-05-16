@@ -56,6 +56,10 @@ public class MapperRegistry {
     return knownMappers.containsKey(type);
   }
 
+  /**
+   * 添加Mapper 
+   * @param type
+   */
   public <T> void addMapper(Class<T> type) {
     if (type.isInterface()) {
       if (hasMapper(type)) {
@@ -63,10 +67,16 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
+    	  /**
+    	   * Mapper代理工厂
+    	   */
+    	  System.out.println("MapperRegister设置MapperProxyFactory...");
         knownMappers.put(type, new MapperProxyFactory<T>(type));
-        // It's important that the type is added before the parser is run
-        // otherwise the binding may automatically be attempted by the
-        // mapper parser. If the type is already known, it won't try.
+        
+        /**
+         * 读取Mapper.xml 关于SQL的内容,都在这里处理
+         */
+        System.out.println("MapperRegister addMapper()...MapperAnnotationBuilder");
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;
@@ -86,14 +96,15 @@ public class MapperRegistry {
   }
 
   /**
+   * sqlconfig.xml中的Mapper配置
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
-    resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
-    Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
+    resolverUtil.find(new ResolverUtil.IsA(superType), packageName);//IsA是一个静态内部类,将匹配的资源存入matches,通过resolverUtil.getClasses()可获得
+    Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();//matches
     for (Class<?> mapperClass : mapperSet) {
-      addMapper(mapperClass);
+      addMapper(mapperClass);//添加所有的Mapper文件
     }
   }
 

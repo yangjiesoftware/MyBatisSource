@@ -79,6 +79,13 @@ public class XMLMapperBuilder extends BaseBuilder {
         configuration, resource, sqlFragments);
   }
 
+  /**
+   * 
+   * @param parser
+   * @param configuration
+   * @param resource xxMapper.xml路径
+   * @param sqlFragments
+   */
   private XMLMapperBuilder(XPathParser parser, Configuration configuration, String resource, Map<String, XNode> sqlFragments) {
     super(configuration);
     this.builderAssistant = new MapperBuilderAssistant(configuration, resource);
@@ -87,7 +94,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * 开始解析xxMapper.xml文件
+   */
   public void parse() {
+	System.out.println("XmlMapperBuilder parse()...解析Mapper.xml");
     if (!configuration.isResourceLoaded(resource)) {
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
@@ -105,16 +116,16 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
-      String namespace = context.getStringAttribute("namespace");
+      String namespace = context.getStringAttribute("namespace");//com.mangocity.mybatis.sqlmapper.UserMapper
       if (namespace.equals("")) {
     	  throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));
-      parameterMapElement(context.evalNodes("/mapper/parameterMap"));
-      resultMapElements(context.evalNodes("/mapper/resultMap"));
-      sqlElement(context.evalNodes("/mapper/sql"));
+      parameterMapElement(context.evalNodes("/mapper/parameterMap"));//处理paramMap标签
+      resultMapElements(context.evalNodes("/mapper/resultMap"));//xpath处理resultMap
+      sqlElement(context.evalNodes("/mapper/sql"));//处理sql标签
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. Cause: " + e, e);
@@ -130,9 +141,10 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
+    	System.out.println("XMLMapperBuilder XNode: \n" + context.toString());
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
-        statementParser.parseStatementNode();
+        statementParser.parseStatementNode();//转换SQL
       } catch (IncompleteElementException e) {
         configuration.addIncompleteStatement(statementParser);
       }
@@ -237,6 +249,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  //解析resultMap标签
   private void resultMapElements(List<XNode> list) throws Exception {
     for (XNode resultMapNode : list) {
       try {
@@ -261,10 +274,17 @@ public class XMLMapperBuilder extends BaseBuilder {
                 resultMapNode.getStringAttribute("javaType"))));
     String extend = resultMapNode.getStringAttribute("extends");
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
-    Class<?> typeClass = resolveClass(type);
+    Class<?> typeClass = resolveClass(type);//map
     Discriminator discriminator = null;
     List<ResultMapping> resultMappings = new ArrayList<ResultMapping>();
     resultMappings.addAll(additionalResultMappings);
+    /**
+     * <resultMap type="map" id="userMapper">
+			<id column="USER_ID" property="userId"/>
+			<result column="USER_NAME" property="userName"/>
+			<result column="DESC" property="desc"/>
+	  </resultMap>
+     */
     List<XNode> resultChildren = resultMapNode.getChildren();
     for (XNode resultChild : resultChildren) {
       if ("constructor".equals(resultChild.getName())) {

@@ -43,6 +43,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 执行器骨架类
  * @author Clinton Begin
  */
 public abstract class BaseExecutor implements Executor {
@@ -78,7 +79,7 @@ public abstract class BaseExecutor implements Executor {
   public void close(boolean forceRollback) {
     try {
       try {
-        rollback(forceRollback);
+        rollback(forceRollback);//1.清空缓存 2.flushStatements 3.事务回滚
       } finally {
         if (transaction != null) transaction.close();
       }
@@ -109,6 +110,7 @@ public abstract class BaseExecutor implements Executor {
     return flushStatements(false);
   }
 
+  //doFlushStatements 供子类重写
   public List<BatchResult> flushStatements(boolean isRollBack) throws SQLException {
     if (closed) throw new ExecutorException("Executor was closed.");
     return doFlushStatements(isRollBack);
@@ -207,7 +209,7 @@ public abstract class BaseExecutor implements Executor {
   public void rollback(boolean required) throws SQLException {
     if (!closed) {
       try {
-        clearLocalCache();
+        clearLocalCache();//清空缓存
         flushStatements(true);
       } finally {
         if (required) {
@@ -224,12 +226,35 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 供子类覆盖
+   * @param ms
+   * @param parameter
+   * @return
+   * @throws SQLException
+   */
   protected abstract int doUpdate(MappedStatement ms, Object parameter)
       throws SQLException;
 
+  /**
+   * 供子类覆盖
+   * @param isRollback
+   * @return
+   * @throws SQLException
+   */
   protected abstract List<BatchResult> doFlushStatements(boolean isRollback)
       throws SQLException;
 
+  /**
+   * 供子类覆盖
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   * @return
+   * @throws SQLException
+   */
   protected abstract <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)
       throws SQLException;
 

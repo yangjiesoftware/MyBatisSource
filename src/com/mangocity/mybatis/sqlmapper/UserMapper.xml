@@ -22,7 +22,7 @@
 		)
 	</insert>
 	
-	<select id="queryAllUsers"  resultMap="userMapper">
+	<select id="queryAllUsers"   resultMap="userMapper">
 		select * from t_user
 	</select>
 	

@@ -36,6 +36,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 默认的SqlSession处理类
  * @author Clinton Begin
  */
 public class DefaultSqlSession implements SqlSession {
@@ -94,17 +95,21 @@ public class DefaultSqlSession implements SqlSession {
     return selectedMap;
   }
 
+  
   public <E> List<E> selectList(String statement) {
     return this.selectList(statement, null);
   }
 
+  /**
+   * 查询多条记录入口
+   */
   public <E> List<E> selectList(String statement, Object parameter) {
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
-      MappedStatement ms = configuration.getMappedStatement(statement);
+      MappedStatement ms = configuration.getMappedStatement(statement);//根据statement创建MappedStatement对象
       List<E> result = executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
       return result;
     } catch (Exception e) {

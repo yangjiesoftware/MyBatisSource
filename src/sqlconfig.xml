@@ -4,7 +4,7 @@
     "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
 	<properties resource="config/db.properties" />
-	<typeAliases></typeAliases>
+	<!-- <typeAliases></typeAliases> -->
 	<!-- <plugins>
 		<plugin interceptor="">
 			<property name="" value=""/>
@@ -13,12 +13,13 @@
 	<!-- <objectFactory type="">
 		<property name="" value=""/>
 	</objectFactory> -->
-	<objectWrapperFactory type=""></objectWrapperFactory>
+	<!-- <objectWrapperFactory type=""></objectWrapperFactory> -->
 	<settings>
 		<!-- changes from the defaults for testing -->
 		<setting name="cacheEnabled" value="false" />
 		<setting name="useGeneratedKeys" value="true" />
-		<setting name="defaultExecutorType" value="REUSE" />
+		<setting name="defaultExecutorType" value="SIMPLE" />
+		<!-- <setting name="mapUnderscoreToCamelCase" value="true"/> -->
 	</settings>
 	<environments default="sqllite">
 		<environment id="sqllite">
@@ -35,6 +36,10 @@
 			</dataSource>
 		</environment>
 	</environments>
+	<!-- <typeHandlers>
+		<package name=""/>--><!-- 当配置package的时候，mybatis会去配置的package扫描TypeHandler -->
+		<!--<typeHandler handler="" javaType="" jdbcType=""/>
+	</typeHandlers> -->
 	<mappers>
 		<package name="com.mangocity.mybatis.sqlmapper" />
 	</mappers>

@@ -84,6 +84,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
+ * 处理注解
  * @author Clinton Begin
  */
 public class MapperAnnotationBuilder {
@@ -93,11 +94,15 @@ public class MapperAnnotationBuilder {
 
   private Configuration configuration;
   private MapperBuilderAssistant assistant;
+  /**
+   * Mapper.java文件
+   */
   private Class<?> type;
 
   public MapperAnnotationBuilder(Configuration configuration, Class<?> type) {
     String resource = type.getName().replace('.', '/') + ".java (best guess)";
-    this.assistant = new MapperBuilderAssistant(configuration, resource);
+    System.out.println("new MapperBuilderAssistant()...");
+    this.assistant = new MapperBuilderAssistant(configuration, resource);//
     this.configuration = configuration;
     this.type = type;
 
@@ -115,6 +120,10 @@ public class MapperAnnotationBuilder {
   public void parse() {
     String resource = type.toString();
     if (!configuration.isResourceLoaded(resource)) {
+      System.out.println("MapperAnnotationBuilder loadXmlResource begin()...");
+      /**
+       * 添加同级目录的xxMapper.xml文件
+       */
       loadXmlResource();
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
@@ -124,7 +133,7 @@ public class MapperAnnotationBuilder {
       for (Method method : methods) {
         try {
           if (!method.isBridge()) { // issue #237
-            parseStatement(method);
+            parseStatement(method);//处理注解
           }
         } catch (IncompleteElementException e) {
           configuration.addIncompleteMethod(new MethodResolver(this, method));
@@ -162,6 +171,9 @@ public class MapperAnnotationBuilder {
         // ignore, resource is not required
       }
       if (inputStream != null) {
+    	 /**
+    	  * 解析xxMapper.xml文件
+    	  */
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
         xmlParser.parse();
       }
@@ -243,10 +255,11 @@ public class MapperAnnotationBuilder {
     return null;
   }
 
+  //处理Mapper.java上的注解
   void parseStatement(Method method) {
-    Class<?> parameterTypeClass = getParameterType(method);
+    Class<?> parameterTypeClass = getParameterType(method);//获得xxMapper.java中的每个方法的参数类型
     LanguageDriver languageDriver = getLanguageDriver(method);
-    SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);
+    SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);//取注解
     if (sqlSource != null) {
       Options options = method.getAnnotation(Options.class);
       final String mappedStatementId = type.getName() + "." + method.getName();
@@ -448,6 +461,11 @@ public class MapperAnnotationBuilder {
     return SqlCommandType.valueOf(type.getSimpleName().toUpperCase(Locale.ENGLISH));
   }
 
+  /**
+   * 获取方法上的MyBatis注解
+   * @param method
+   * @return
+   */
   private Class<? extends Annotation> getSqlAnnotationType(Method method) {
     return chooseAnnotationType(method, sqlAnnotationTypes);
   }
