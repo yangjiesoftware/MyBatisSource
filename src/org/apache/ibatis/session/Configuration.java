@@ -475,7 +475,7 @@ public class Configuration {
   }
 
   /**
-   * @since 3.2.2
+   * @since 3.2.2 
    */
   public MapperRegistry getMapperRegistry() {
     return mapperRegistry;
