@@ -136,6 +136,7 @@ public abstract class BaseExecutor implements Executor {
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+    	  System.out.println("BaseExecutor...queryFromDatabase()...");
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -287,12 +288,16 @@ public abstract class BaseExecutor implements Executor {
 
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    System.out.println("缓存cacheKey: " + key);
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
+    	System.out.println("BaseExecutor doQuery()...");
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+    	System.out.println("localCache removeObject");
       localCache.removeObject(key);
     }
+    System.out.println("localCache putObject");
     localCache.putObject(key, list);
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);
@@ -304,7 +309,7 @@ public abstract class BaseExecutor implements Executor {
     Connection connection = transaction.getConnection();
     if (statementLog.isDebugEnabled()) {
       return ConnectionLogger.newInstance(connection, statementLog, queryStack);
-    } else {
+    } else { 
       return connection;
     }
   }

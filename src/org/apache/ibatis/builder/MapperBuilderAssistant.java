@@ -284,6 +284,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     setStatementResultMap(resultMap, resultType, resultSetType, statementBuilder);
     setStatementCache(isSelect, flushCache, useCache, currentCache, statementBuilder);
 
+    System.out.println("============build MappedStatement============");
     MappedStatement statement = statementBuilder.build();
     configuration.addMappedStatement(statement);
     return statement;

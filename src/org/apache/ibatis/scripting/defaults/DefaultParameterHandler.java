@@ -57,6 +57,7 @@ public class DefaultParameterHandler implements ParameterHandler {
   }
 
   public void setParameters(PreparedStatement ps) throws SQLException {
+	  System.out.println("DefaultParameterHandler setParameters begin()...");
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings != null) {
@@ -64,7 +65,7 @@ public class DefaultParameterHandler implements ParameterHandler {
         ParameterMapping parameterMapping = parameterMappings.get(i);
         if (parameterMapping.getMode() != ParameterMode.OUT) {
           Object value;
-          String propertyName = parameterMapping.getProperty();
+          String propertyName = parameterMapping.getProperty();//{userId=1}
           if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
             value = boundSql.getAdditionalParameter(propertyName);
           } else if (parameterObject == null) {
@@ -73,7 +74,7 @@ public class DefaultParameterHandler implements ParameterHandler {
             value = parameterObject;
           } else {
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
-            value = metaObject.getValue(propertyName);
+            value = metaObject.getValue(propertyName);//1
           }
           TypeHandler typeHandler = parameterMapping.getTypeHandler();
           JdbcType jdbcType = parameterMapping.getJdbcType();
