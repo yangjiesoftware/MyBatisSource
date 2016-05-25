@@ -185,6 +185,7 @@ public class Configuration {
    * 相关联的数据延迟加载
    */
   protected boolean lazyLoadingEnabled = false;
+  
   protected ProxyFactory proxyFactory;
 
   protected String databaseId;
@@ -196,18 +197,39 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+  /**
+   * 拦截器链
+   */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+  
+  /**
+   * 类型处理器
+   */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+  
+  /**
+   * 别名处理器
+   */
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  /**
+   * StrictMap:增强HashMap,截取key中包含.的.如果存在相同的key,第二次插入的时候,会插入一个Ambiguity
+   * desc:
+   */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection");
+  
   protected final Map<String, Cache> caches = new StrictMap<Cache>("Caches collection");
   protected final Map<String, ResultMap> resultMaps = new StrictMap<ResultMap>("Result Maps collection");
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<ParameterMap>("Parameter Maps collection");
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<KeyGenerator>("Key Generators collection");
 
+  /**
+   * xxxMapper.xml集合
+   */
   protected final Set<String> loadedResources = new HashSet<String>();
+  
   protected final Map<String, XNode> sqlFragments = new StrictMap<XNode>("XML fragments parsed from previous mappers");
 
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<XMLStatementBuilder>();
@@ -858,9 +880,9 @@ public class Configuration {
     public V put(String key, V value) {
       if (containsKey(key))
         throw new IllegalArgumentException(name + " already contains value for " + key);
-      if (key.contains(".")) {
+      if (key.contains(".")) {//增强了HashMap put方法对.的处理
         final String shortKey = getShortName(key);
-        if (super.get(shortKey) == null) {
+        if (super.get(shortKey) == null) {//如果不存在该值,则直接插入
           super.put(shortKey, value);
         } else {
           super.put(shortKey, (V) new Ambiguity(shortKey));
@@ -874,7 +896,7 @@ public class Configuration {
       if (value == null) {
         throw new IllegalArgumentException(name + " does not contain value for " + key);
       }
-      if (value instanceof Ambiguity) {
+      if (value instanceof Ambiguity) {//验证是否有重复的值
         throw new IllegalArgumentException(((Ambiguity) value).getSubject() + " is ambiguous in " + name
             + " (try using the full name including the namespace, or rename one of the entries)");
       }

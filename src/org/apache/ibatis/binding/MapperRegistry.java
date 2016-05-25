@@ -70,15 +70,20 @@ public class MapperRegistry {
     	  /**
     	   * Mapper代理工厂
     	   */
-    	  System.out.println("MapperRegister设置MapperProxyFactory...");
-        knownMappers.put(type, new MapperProxyFactory<T>(type));
+    	System.out.println("MapperRegister xxxMapper.java创建代理类");
+        knownMappers.put(type, new MapperProxyFactory<T>(type));//type:com.mangocity.mybatis.sqlmapper.UserMapper
         
         /**
          * 读取Mapper.xml 关于SQL的内容,都在这里处理
          */
-        System.out.println("MapperRegister addMapper()...MapperAnnotationBuilder");
+        System.out.println("MapperRegister addMapper()...MapperAnnotationBuilder处理注解类");
+        
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        
+        System.out.println("MapperAnnotationBuilder.parse()...");
+        
         parser.parse();
+        
         loadCompleted = true;
       } finally {
         if (!loadCompleted) {

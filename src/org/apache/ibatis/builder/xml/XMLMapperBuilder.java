@@ -98,7 +98,7 @@ public class XMLMapperBuilder extends BaseBuilder {
    * 开始解析xxMapper.xml文件
    */
   public void parse() {
-	System.out.println("XmlMapperBuilder parse()...解析Mapper.xml");
+	System.out.println("XmlMapperBuilder parse()...开始解析Mapper.xml");
     if (!configuration.isResourceLoaded(resource)) {
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
@@ -121,11 +121,17 @@ public class XMLMapperBuilder extends BaseBuilder {
     	  throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+      System.out.println("prepare resolve cache-refl");
       cacheRefElement(context.evalNode("cache-ref"));
+      System.out.println("prepare resolve cache");
       cacheElement(context.evalNode("cache"));
+      System.out.println("prepare resolve /mapper/parameterMap");
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));//处理paramMap标签
+      System.out.println("prepare resolve /mapper/resultMap");
       resultMapElements(context.evalNodes("/mapper/resultMap"));//xpath处理resultMap
+      System.out.println("prepare resolve /mapper/sql");
       sqlElement(context.evalNodes("/mapper/sql"));//处理sql标签
+      System.out.println("prepare resolve select|insert|update|delete");
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. Cause: " + e, e);
@@ -141,7 +147,6 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
-    	System.out.println("XMLMapperBuilder XNode: \n" + context.toString());
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
         statementParser.parseStatementNode();//转换SQL
@@ -265,6 +270,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
+	  System.out.println("handle resultMapElement()...");
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());

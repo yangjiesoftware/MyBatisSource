@@ -93,6 +93,10 @@ public class MapperAnnotationBuilder {
   private final Set<Class<? extends Annotation>> sqlProviderAnnotationTypes = new HashSet<Class<? extends Annotation>>();
 
   private Configuration configuration;
+  
+  /**
+   * 助手类(委托类)
+   */
   private MapperBuilderAssistant assistant;
   /**
    * Mapper.java文件
@@ -101,8 +105,8 @@ public class MapperAnnotationBuilder {
 
   public MapperAnnotationBuilder(Configuration configuration, Class<?> type) {
     String resource = type.getName().replace('.', '/') + ".java (best guess)";
-    System.out.println("new MapperBuilderAssistant()...");
-    this.assistant = new MapperBuilderAssistant(configuration, resource);//
+    System.out.println("MapperAnnotationBuilder create MapperBuilderAssistant() begin()...");
+    this.assistant = new MapperBuilderAssistant(configuration, resource);//resource:com/mangocity/mybatis/sqlmapper/UserMapper.java
     this.configuration = configuration;
     this.type = type;
 
@@ -125,15 +129,26 @@ public class MapperAnnotationBuilder {
        * 添加同级目录的xxMapper.xml文件
        */
       loadXmlResource();
+      
+      //给Configuration类设置成员变量(加载的xml文件)
       configuration.addLoadedResource(resource);
+      
+      //设置命名空间
       assistant.setCurrentNamespace(type.getName());
+      
+      //处理缓存注解
       parseCache();
+      
+      //处理缓存引用注解
       parseCacheRef();
+      
+      //获得mapper.java中的所有方法
       Method[] methods = type.getMethods();
+      
       for (Method method : methods) {
         try {
           if (!method.isBridge()) { // issue #237
-            parseStatement(method);//处理注解
+            parseStatement(method);//解析xxxMapper.java类中的每一个方法和xxMapper.xml对应关系
           }
         } catch (IncompleteElementException e) {
           configuration.addIncompleteMethod(new MethodResolver(this, method));
@@ -174,6 +189,7 @@ public class MapperAnnotationBuilder {
     	 /**
     	  * 解析xxMapper.xml文件
     	  */
+    	 System.out.println("prepare XMLMapperBuilder.parse()...");
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
         xmlParser.parse();
       }
@@ -259,8 +275,9 @@ public class MapperAnnotationBuilder {
   void parseStatement(Method method) {
     Class<?> parameterTypeClass = getParameterType(method);//获得xxMapper.java中的每个方法的参数类型
     LanguageDriver languageDriver = getLanguageDriver(method);
-    SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);//取注解
-    if (sqlSource != null) {
+    System.out.println("解析mapper.java上注解上的SQL");
+    SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);//取注解上的SQL
+    if (sqlSource != null) {//如果拿不到注解,则直接跳过该方法
       Options options = method.getAnnotation(Options.class);
       final String mappedStatementId = type.getName() + "." + method.getName();
       Integer fetchSize = null;

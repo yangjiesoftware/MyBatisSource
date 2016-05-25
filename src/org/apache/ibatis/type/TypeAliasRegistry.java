@@ -33,10 +33,13 @@ import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 
 /**
- * @author Clinton Begin
+ * 别名注册器
  */
 public class TypeAliasRegistry {
 
+  /**
+   * 存储别名对应的key-value容器
+   */
   private final Map<String, Class<?>> TYPE_ALIASES = new HashMap<String, Class<?>>();
 
   public TypeAliasRegistry() {
@@ -135,8 +138,10 @@ public class TypeAliasRegistry {
     }
   }
 
+  //如果没有指定别名,则默认指定该类名作为别名
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
+    //如果有别名注解,则取注解
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();

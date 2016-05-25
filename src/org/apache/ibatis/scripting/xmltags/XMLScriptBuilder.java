@@ -49,12 +49,15 @@ public class XMLScriptBuilder extends BaseBuilder {
   }
 
   public SqlSource parseScriptNode() {
+	  System.out.println("XMLScriptBuilder parseScriptNode()...");
     List<SqlNode> contents = parseDynamicTags(context);
     MixedSqlNode rootSqlNode = new MixedSqlNode(contents);
     SqlSource sqlSource = null;
     if (isDynamic) {
+    	System.out.println("create DynamicSqlSource()");
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
+    	System.out.println("create RawSqlSource()");
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;

@@ -213,7 +213,7 @@ public class XPathParser {
   }
 
   public XNode evalNode(String expression) {
-    return evalNode(document, expression);
+     return evalNode(document, expression);
   }
 
   public XNode evalNode(Object root, String expression) {

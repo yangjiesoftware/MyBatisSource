@@ -97,8 +97,8 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
     parsed = true;
     //解析sqlconfig.xml 获得Configuration节点
+    System.out.println("Configuration parseConfiguration()...");
     parseConfiguration(parser.evalNode("/configuration"));
-    System.out.println("Configuration toString()..." + configuration);
     return configuration;
   }
 
@@ -412,7 +412,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
-          configuration.addMappers(mapperPackage);
+          configuration.addMappers(mapperPackage);//com.mangocity.mybatis.sqlmapper
         } else {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");

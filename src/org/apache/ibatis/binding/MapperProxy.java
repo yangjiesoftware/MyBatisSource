@@ -24,6 +24,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * xxxMapper.java 接口的代理方法实现
+ * 在MapperProxyFactory中调用该类
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -41,6 +43,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   }
 
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+	  System.out.println("MapperProxy invoke()...");
     if (Object.class.equals(method.getDeclaringClass())) {
       try {
         return method.invoke(this, args);

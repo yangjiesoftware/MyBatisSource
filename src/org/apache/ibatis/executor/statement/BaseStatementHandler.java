@@ -79,7 +79,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
   }
 
   public Statement prepare(Connection connection) throws SQLException {
-	  System.out.println("BaseStatement prepase begin()...");
+	  System.out.println("BaseStatement prepare begin()...");
     ErrorContext.instance().sql(boundSql.getSql());
     Statement statement = null;
     try {
