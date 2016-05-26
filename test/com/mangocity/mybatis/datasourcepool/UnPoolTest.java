@@ -20,7 +20,7 @@ public class UnPoolTest {
 		for(int i=0;i<5000;i++){
 			costCreateConnTime();
 		}
-		long end = System.currentTimeMillis();
+		long end = System.currentTimeMillis(); 
 		System.out.println("Total Time Costs:\t\t"
 				+ (end - start) + " ms");
 

@@ -42,8 +42,6 @@ public class UserMapperTest {
 	
 	@Test
 	public void testQueryAll2(){
-		List<Map<String,Object>> resultList = SqlUtil.getInstance().selectList("select * from t_user where user_id=3");
-		System.out.println("resultList: " + resultList);
 	}
 
 }
