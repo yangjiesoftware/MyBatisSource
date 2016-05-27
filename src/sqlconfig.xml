@@ -35,6 +35,19 @@
 				<property name="poolTimeToWait" value="20000" />
 			</dataSource>
 		</environment>
+		<environment id="mysql">
+			<transactionManager type="JDBC">
+			</transactionManager>
+			<dataSource type="POOLED"><!-- POOLED -->
+				<property name="driver" value="${driver.mysql}" />
+				<property name="url" value="${url.mysql}" />
+				<property name="username" value="${username.mysql}" />
+				<property name="password" value="${password.mysql}" />
+				<property name="poolMaximumActiveConnections" value="100" />
+				<property name="poolMaximumIdleConnections" value="0" />
+				<property name="poolTimeToWait" value="20000" />
+			</dataSource>
+		</environment>
 	</environments>
 	<!-- <typeHandlers>
 		<package name=""/>--><!-- 当配置package的时候，mybatis会去配置的package扫描TypeHandler -->

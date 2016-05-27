@@ -135,6 +135,7 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   private void parseSelectKeyNode(String id, XNode nodeToHandle, Class<?> parameterTypeClass, LanguageDriver langDriver, String databaseId) {
+	  System.out.println("XMLStatementBuilder parseSelectKeyNode()...解析selectKey自增主键");
     String resultType = nodeToHandle.getStringAttribute("resultType");
     Class<?> resultTypeClass = resolveClass(resultType);
     StatementType statementType = StatementType.valueOf(nodeToHandle.getStringAttribute("statementType", StatementType.PREPARED.toString()));
@@ -145,6 +146,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     //defaults
     boolean useCache = false;
     boolean resultOrdered = false;
+    //主键生成器(空实现)
     KeyGenerator keyGenerator = new NoKeyGenerator();
     Integer fetchSize = null;
     Integer timeout = null;
@@ -152,8 +154,14 @@ public class XMLStatementBuilder extends BaseBuilder {
     String parameterMap = null;
     String resultMap = null;
     ResultSetType resultSetTypeEnum = null;
-
-    SqlSource sqlSource = langDriver.createSqlSource(configuration, nodeToHandle, parameterTypeClass);
+    /**
+     * nodeToHandle:
+     <selectKey order="AFTER" keyProperty="user_id" resultType="int">
+			SELECT LAST_INSERT_ID() AS user_id
+		</selectKey>
+     */
+    System.out.println("LangDriver createSqlSource() begin()...");
+    SqlSource sqlSource = langDriver.createSqlSource(configuration, nodeToHandle, parameterTypeClass);//XMLLanguageDriver
     SqlCommandType sqlCommandType = SqlCommandType.SELECT;
 
     builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,

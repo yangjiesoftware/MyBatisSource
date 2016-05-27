@@ -14,6 +14,9 @@
 	</select>
 	
 	<insert id="addUser" parameterType="map">
+		<selectKey resultType="int" order="AFTER" keyProperty="user_id">
+			SELECT LAST_INSERT_ID() AS user_id
+		</selectKey>
 		insert into t_user(user_id,user_name,desc) values
 		(
 			null,
