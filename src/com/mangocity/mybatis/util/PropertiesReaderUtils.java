@@ -1,4 +1,4 @@
-package com.mangocity.mybatis.test;
+package com.mangocity.mybatis.util;
 
 import java.io.File;
 import java.io.FileInputStream;
