@@ -200,6 +200,7 @@ public class PropertiesReaderUtils {
 	}
 	
 	public static String getValue(String propsKey){
+		PropertiesReaderUtils.getInstance();
 		LOGGER.info("PropertiesReaderUtils getValue: {" + propsKey + "} begin()...");
 		if(null == CACHE_MAP){
 			LOGGER.info("PropertiesReaderUtils CACHE_MAP is Null...Stop Here.");
@@ -210,7 +211,6 @@ public class PropertiesReaderUtils {
 	}
 
 	public static void main(String[] args) {
-		PropertiesReaderUtils.getInstance();
 		System.out.println(PropertiesReaderUtils.getValue("driver.sqllite"));
 	}
 }
